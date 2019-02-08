@@ -23,7 +23,7 @@ speak = ->
   picture = $(picture_selector).get(0).files[0]
 
   has_content = if content.length   >  0          then true else false
-  has_picture = if typeof(picture) != 'undefined' then true else false
+  has_picture = if (picture != undefined && picture != null) then true else false
 
   if has_content || has_picture
     if has_picture
