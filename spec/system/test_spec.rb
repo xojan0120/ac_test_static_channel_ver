@@ -1,31 +1,42 @@
 require 'rails_helper'
 
 RSpec.feature "Tests", type: :system do
-  #def mount_path
-  #  @mount_path ||= begin
-  #    mount = Rails.application.config.action_cable.mount_path
-  #    test_host + mount
-  #  end
-  #end
+  # セッション(ウインドウ)を切り替える
+  def switch_session(session)
+    session.switch_to_window(session.current_window)
+  end
 
-  #def test_host
-  #  host = Capybara.current_session.server.host
-  #  post = Capybara.current_session.server.post
-  #  "http://#{host}:#{port}"
-  #end
+  # セッション(ウインドウ)を閉じる
+  def close_session(session)
+    session.current_window.close
+  end
 
-  #it "test" do
-  #  session = Capybara::Session.new(:selenium_chrome)
-  #  session.visit(mount_path)
-  #end
+  it "test", js: true do
+    # セッションの場合は、visitの引数は完全なURLを渡す必要がある 
+    url = "http://localhost:3000"
 
-  xit "test", js: true do
-    FactoryBot.create(:message)
-    visit root_path
-    click_link "100"
+    session1 = Capybara::Session.new(:selenium_chrome)
+    session1.visit url
 
-    Capybara.session_name = :new_window
-    visit root_path
-    click_link "100"
+    session2 = Capybara::Session.new(:selenium_chrome)
+    session2.visit url
+
+    msg1 = "これはセッション１こめ"
+    session1.fill_in "content", with: msg1
+    session1.click_on "submit_btn"
+    expect(session1.has_content?(msg1)).to be_truthy
+    expect(session2.has_content?(msg1)).to be_truthy
+
+    msg2 = "これはセッション２こめ"
+    session2.fill_in "content", with: msg2
+    session2.click_on "submit_btn"
+    expect(session2.has_content?(msg2)).to be_truthy
+    expect(session1.has_content?(msg2)).to be_truthy
+
+    switch_session(session2)
+    switch_session(session1)
+
+    close_session(session1)
+    close_session(session2)
   end
 end
